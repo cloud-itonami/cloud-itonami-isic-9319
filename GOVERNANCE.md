@@ -1,6 +1,6 @@
 # Governance
 
-`cloud-itonami-9319` is an OSS open-business blueprint for other sports activities not elsewhere classified (e.g. independent race organizing, sports officiating and event-timing services).
+`cloud-itonami-isic-9319` is an OSS open-business blueprint for other sports activities not elsewhere classified (e.g. independent race organizing, sports officiating and event-timing services).
 Governance covers both the capability layer and the operator model.
 
 ## Maintainers

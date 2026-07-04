@@ -1,4 +1,4 @@
-# cloud-itonami-9319
+# cloud-itonami-isic-9319
 
 Open Business Blueprint for **ISIC Rev.5 9319**: Other sports activities.
 

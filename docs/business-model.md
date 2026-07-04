@@ -2,7 +2,7 @@
 
 ## Classification
 
-- Repository: `cloud-itonami-9319`
+- Repository: `cloud-itonami-isic-9319`
 - ISIC Rev.5: `9319`
 - Activity: other sports activities not elsewhere classified (e.g. independent race organizing, sports officiating and event-timing services)
 - Social impact: cultural/recreational access, data sovereignty, transparent audit
