@@ -6,14 +6,14 @@
  ;; repo is standalone (forkable outside the workspace); the :local/root
  ;; paths only resolve inside the monorepo checkout — a standalone fork
  ;; should override them with git coordinates.
+ ;; NOTE: the operator console's DADS (デジタル庁デザインシステム) styling is
+ ;; INLINED in `sportsevent.render-html/console-css`, not pulled in as a
+ ;; dependency. Adding jp-go-dds over git coordinates just to obtain
+ ;; stylesheet text would make regenerating the console require the
+ ;; network and would couple this repo's build-time invariant to a moving
+ ;; upstream pin. `clojure -M:dev:render-html` runs fully offline.
  :deps {io.github.kotoba-lang/langgraph
-        {:local/root "../../kotoba-lang/langgraph"}
-        ;; jp-go-dds (デジタル庁デザインシステム) -- the workspace-wide base
-        ;; design system. Git coordinates, not :local/root, so the operator
-        ;; console renders in a standalone fork too.
-        io.github.kotoba-lang/jp-go-digital-design-system
-        {:git/url "https://github.com/kotoba-lang/jp-go-digital-design-system"
-         :git/sha "83db99546eabc53613ae826ea41d1533a3c574af"}}
+        {:local/root "../../kotoba-lang/langgraph"}}
  :aliases
  {;; offline workspace dev -- pin transitive langchain to local checkout
   :dev {:override-deps

@@ -41,7 +41,6 @@
   (default `docs/samples/operator-console.html`)."
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
-            [jp-go-dds.skin]
             [langgraph.graph :as g]
             [sportsevent.facts :as facts]
             [sportsevent.operation :as op]
@@ -407,6 +406,88 @@
            (str (span "ok" "recorded") " &mdash; " (code a))
            (span "critical" "no approver on the record")))))
 
+;; ----------------------------- style -----------------------------
+
+(def ^:private console-css
+  "The DADS (デジタル庁デザインシステム) primitives this console actually
+  references, inlined so the build is OFFLINE and has no dependency
+  beyond the ones the actor itself needs.
+
+  Provenance: these are the same vendored jp-go-digital-design-system
+  values this repo's own product face (`docs/index.html`) already
+  carries, reduced to the closure of what this page uses -- the 24
+  tokens reachable from these rules, plus the small class vocabulary
+  the renderer emits (`.bar .card .badge .ok .warn .critical .muted`)
+  and the semantic tags it uses. The full DADS component library
+  (`dads-*`) is deliberately NOT inlined: this console never emits
+  those class names, so shipping them would be 66 KB of dead CSS.
+
+  Deliberately NOT a dependency. Pulling jp-go-dds in over git
+  coordinates to obtain stylesheet text would make regenerating this
+  page require the network, and would couple a build-time invariant of
+  this repo to a moving upstream pin. Re-vendor by hand if DADS moves.
+
+  Every `var(--x)` below resolves against the `:root` block below --
+  the file is checked for that closure by the render test."
+  (str/join
+   "\n"
+   [":root{"
+    "  --color-key-900:var(--color-primitive-blue-900);"
+    "  --color-neutral-black:#000000;"
+    "  --color-neutral-solid-gray-200:#cccccc;"
+    "  --color-neutral-solid-gray-300:#b3b3b3;"
+    "  --color-neutral-solid-gray-50:#f2f2f2;"
+    "  --color-neutral-solid-gray-600:#666666;"
+    "  --color-neutral-solid-gray-800:#333333;"
+    "  --color-neutral-solid-gray-900:#1a1a1a;"
+    "  --color-neutral-white:#ffffff;"
+    "  --color-primitive-blue-1000:#00118f;"
+    "  --color-primitive-blue-200:#c5d7fb;"
+    "  --color-primitive-blue-50:#e8f1fe;"
+    "  --color-primitive-blue-900:#0017c1;"
+    "  --color-primitive-green-800:#197a4b;"
+    "  --color-primitive-magenta-900:#8b008b;"
+    "  --color-primitive-orange-800:#c74700;"
+    "  --color-primitive-red-800:#ec0000;"
+    "  --color-primitive-yellow-300:#ffd43d;"
+    "  --color-primitive-yellow-900:#927200;"
+    "  --color-semantic-error-1:var(--color-primitive-red-800);"
+    "  --color-semantic-success-2:var(--color-primitive-green-800);"
+    "  --color-semantic-warning-yellow-2:var(--color-primitive-yellow-900);"
+    "  --font-family-mono:'Noto Sans Mono', monospace;"
+    "  --font-family-sans:'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;"
+    "}"
+    "html{ scrollbar-gutter: stable; font-family: var(--font-family-sans); }"
+    "html:has(:modal){ overflow: clip; scrollbar-gutter: auto; }"
+    "body:has(:modal){ overflow: auto; scrollbar-gutter: stable; }"
+    ":where(a):any-link{ color: var(--color-primitive-blue-1000); text-decoration: underline; text-decoration-thickness: calc(1 / 16 * 1rem); text-underline-offset: calc(3 / 16 * 1rem); }"
+    ":where(a):visited{ color: var(--color-primitive-magenta-900); }"
+    "@media (hover: hover){"
+    "  :where(a):hover{ color: var(--color-primitive-blue-900); text-decoration-thickness: calc(3 / 16 * 1rem); }"
+    "}"
+    ":where(a):active{ color: var(--color-primitive-orange-800); text-decoration-thickness: calc(1 / 16 * 1rem); }"
+    ":focus-visible{ outline: calc(4 / 16 * 1rem) solid var(--color-neutral-black); outline-offset: calc(2 / 16 * 1rem); border-radius: calc(4 / 16 * 1rem); box-shadow: 0 0 0 calc(2 / 16 * 1rem) var(--color-primitive-yellow-300); }"
+    "body{ font-family: var(--font-family-sans); color: var(--color-neutral-solid-gray-800); background: var(--color-neutral-white); line-height: 1.8; max-width: 64rem; margin: 0 auto; padding: 2rem 1rem 4rem; }"
+    "h1{ font-size: 2.125rem; font-weight: 700; line-height: 1.4; margin: 0 0 1rem; color: var(--color-neutral-solid-gray-900); }"
+    "h2{ font-size: 1.5rem; font-weight: 700; line-height: 1.5; margin: 2.5rem 0 .75rem; padding-bottom: .5rem; border-bottom: 1px solid var(--color-neutral-solid-gray-200); color: var(--color-neutral-solid-gray-900); }"
+    "p{ margin: 0 0 1rem; }"
+    "a{ color: var(--color-key-900); }"
+    "table{ display: block; overflow-x: auto; max-width: 100%; border-collapse: collapse; width: 100%; margin: .75rem 0 1.5rem; font-size: .875rem; }"
+    "th,td{ border: 1px solid var(--color-neutral-solid-gray-300); padding: .5rem .75rem; text-align: left; vertical-align: top; }"
+    "th{ background: var(--color-neutral-solid-gray-50); font-weight: 700; color: var(--color-neutral-solid-gray-900); }"
+    "code,pre{ font-family: var(--font-family-mono); }"
+    "code{ background: var(--color-neutral-solid-gray-50); border: 1px solid var(--color-neutral-solid-gray-200); border-radius: 4px; padding: 1px 5px; font-size: .9em; }"
+    "pre code{ background: none; border: 0; padding: 0; }"
+    ".ok{ color: var(--color-semantic-success-2); font-weight: 700; }"
+    ".warn{ color: var(--color-semantic-warning-yellow-2); font-weight: 700; }"
+    ".critical{ color: var(--color-semantic-error-1); font-weight: 700; }"
+    ".muted{ color: var(--color-neutral-solid-gray-600); font-weight: 400; }"
+    ".card{ border: 1px solid var(--color-neutral-solid-gray-200); border-radius: 12px; padding: 1.25rem 1.5rem; margin: 1.25rem 0; background: var(--color-neutral-white); }"
+    ".card>:first-child{ margin-top: 0; }"
+    ".card>:last-child{ margin-bottom: 0; }"
+    ".badge{ display: inline-block; font-size: .8125rem; font-weight: 700; padding: .1rem .625rem; border-radius: 1rem; background: var(--color-primitive-blue-50); color: var(--color-key-900); border: 1px solid var(--color-primitive-blue-200); }"
+    ".bar{ display: flex; align-items: center; gap: .75rem; padding: .75rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--color-neutral-solid-gray-200); }"]))
+
 ;; ----------------------------- document -----------------------------
 
 (defn render
@@ -428,7 +509,7 @@
      "<html lang=\"en\"><head><meta charset=\"utf-8\">"
      "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\">"
      "<title>cloud-itonami-isic-9319 &middot; sports-event operator console</title><style>"
-     (jp-go-dds.skin/dds+skin)
+     console-css
      "</style></head><body>\n"
      "<header class=\"bar\">\n"
      "  <h1>Other sports activities (ISIC 9319) &mdash; Operator Console</h1>\n"
@@ -469,7 +550,10 @@
              (timeline-rows views)))
 
      (section
-      (str "HARD holds (" (count holds) ") &mdash; un-overridable")
+      ;; NOTE: `section` escapes its title, so this must be a literal em
+      ;; dash, not the `&mdash;` entity -- the entity would be escaped
+      ;; into visible "&mdash;" text.
+      (str "HARD holds (" (count holds) ") — un-overridable")
       (str "A HARD hold never reaches a human: there is no approval that clears it. Each row is one "
            "rule violation from a real " (code ":governor-hold") " fact in the ledger, with the "
            "governor's own detail text. One run below fires two rules at once, so rows may outnumber holds.")
