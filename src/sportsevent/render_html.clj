@@ -33,6 +33,23 @@
   invariant of this repo rather than a convention someone has to
   remember.
 
+  Two provenance defects in the actor are MEASURED here rather than
+  described, so the page corrects itself if either is ever fixed:
+
+    - the approver survives a commit under `:ruling/set` and
+      `:antidoping/set` (which persist `:payload`) but is LOST under
+      `:participant/upsert` and `:participant/mark-finalized` --
+      `sportsevent.store/commit-record!` destructures `:value` for the
+      upsert, and `:value` is the pre-approval proposal value;
+    - the REJECTER is never recorded at all: the `:approval-rejected`
+      fact is built from `sportsevent.governor/hold-fact`, which has no
+      `:by` key, so a rejection names nobody.
+
+  Both are reported by reading the record back and comparing, never by
+  hardcoding 'this is broken', and both are labelled explicitly -- a
+  blank cell must never let a reader confuse 'nobody approved this'
+  with 'the store did not keep who did'.
+
   Determinism: no timestamps, no randomness, no reliance on map
   iteration order (every map is sorted explicitly before rendering).
   Two consecutive runs are byte-identical.
