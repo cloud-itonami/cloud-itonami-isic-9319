@@ -59,6 +59,13 @@
   "Phase 0 -- `sportsevent.phase` allows no writes at all here."
   (assoc operator :phase 0))
 
+(def ^:private assisted-operator
+  "Phase 2 -- intake is writable but NOT auto-eligible, so an intake here
+  goes through the human approval handoff instead of auto-committing.
+  That is the only way to observe what the SSoT does with an approver on
+  a `:participant/upsert`, which phase 3 never asks a human about."
+  (assoc operator :phase 2))
+
 (def ^:private approve-by-op-1 {:status :approved :by "op-1"})
 (def ^:private reject-by-op-1  {:status :rejected :by "op-1"})
 
@@ -125,7 +132,14 @@
     :label "participant-2 intake at phase 0 -- rollout gate, not a governor rule"
     :context read-only-operator
     :request {:op :participant/intake :subject "participant-2"
-              :patch {:id "participant-2" :participant-name "Atlantis Doe"}}}])
+              :patch {:id "participant-2" :participant-name "Atlantis Doe"}}}
+
+   {:thread "t14"
+    :label "participant-3 intake at phase 2 -- approved intake, so upsert provenance is observable"
+    :context assisted-operator
+    :request {:op :participant/intake :subject "participant-3"
+              :patch {:id "participant-3" :participant-name "鈴木花子"}}
+    :approval approve-by-op-1}])
 
 (defn- run-step!
   "Runs one scenario entry against `actor`, resuming through the human
@@ -406,7 +420,9 @@
         approved (filter :approver views)
         seeded-jurisdictions (vec (sort (distinct (map :jurisdiction (store/all-participants db)))))
         coverage (facts/coverage seeded-jurisdictions)
-        dropped (filter #(and (:approver %) (nil? (:retained-approver %))) views)]
+        dropped (filter #(and (:approver %) (nil? (:retained-approver %))) views)
+        kept (filter #(and (:approver %) (:retained-approver %)) views)
+        effects-of (fn [vs] (str/join ", " (map code (sort (distinct (map :effect vs))))))]
     (str
      "<!DOCTYPE html>\n"
      "<html lang=\"en\"><head><meta charset=\"utf-8\">"
@@ -499,13 +515,17 @@
            (if (seq dropped)
              (str (span "critical" (str "This actor loses the approver on " (count dropped)
                                         " of " (count approved) " approved commit(s)"))
-                  " &mdash; the effects that persist "
-                  (code ":payload") " keep it, and the ones that persist only "
-                  (code ":value") " or rebuild the record from scratch do not. "
-                  "A blank here means the record carries no approver at all, which is NOT the same as "
-                  "nobody having approved it &mdash; the approval column shows who did.")
+                  " &mdash; measured as lost under " (effects-of dropped)
+                  (when (seq kept) (str ", and measured as kept under " (effects-of kept)))
+                  ". A blank in the last column means the committed record carries no approver at "
+                  "all, which is NOT the same as nobody having approved it &mdash; the previous "
+                  "column shows who did. Note which effect is affected: "
+                  (code ":participant/mark-finalized") " is the one real-world actuation this actor "
+                  "performs and the one it can never auto-commit, so it is the record whose "
+                  "provenance matters most.")
              (str (span "ok" "Every approved commit retained its approver")
-                  " &mdash; this section is derived at render time, so it will say so again only "
+                  " &mdash; measured under " (effects-of kept)
+                  ". This section is derived at render time, so it will say so again only "
                   "as long as that stays true.")))
       (table ["Op" "Participant" "SSoT effect" "Approved by (graph)" "Approver retained in SSoT"]
              (approver-rows views)))
