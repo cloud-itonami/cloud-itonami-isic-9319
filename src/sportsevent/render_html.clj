@@ -223,7 +223,16 @@
            :phase-reason (:phase-reason hold)
            :hold-fact hold
            :approver (:by granted)
+           ;; MEASURED asymmetry, derived rather than assumed: the
+           ;; `:approval-granted` fact carries `:by`, but the
+           ;; `:approval-rejected` fact is built from
+           ;; `governor/hold-fact`, which has no `:by` key -- so the
+           ;; REJECTER's identity never reaches the audit trail. Fall
+           ;; back to the resume input the graph still holds in its
+           ;; `:approval` channel and SAY which one we are showing,
+           ;; rather than rendering an empty tag that reads as "nobody".
            :rejected-by (:by rejected)
+           :rejected-by-input (:by (:approval state))
            :disposition disposition
            :outcome (cond
                       (and (= :commit disposition) granted) :approved-commit
@@ -298,11 +307,23 @@
            (str (span "ok" "finalized") " " (code (:ruling-number p)))
            (span "muted" "not finalized")))))
 
-(defn- outcome-cell [{:keys [outcome approver rejected-by violations phase-reason]}]
+(defn- rejecter-cell
+  "Who rejected, and WHERE that came from. If the `:approval-rejected`
+  fact carried the identity we say so plainly; if it did not, we name
+  the operator the graph was resumed with and label it, so an empty
+  cell can never be misread as `nobody rejected this`."
+  [{:keys [rejected-by rejected-by-input]}]
+  (cond
+    rejected-by       (str "approver " (code rejected-by) " rejected")
+    rejected-by-input (str "approver " (code rejected-by-input)
+                           " rejected " (span "muted" "(audit only &mdash; the :approval-rejected fact carries no :by)"))
+    :else             (str "rejected by " (span "muted" "an operator the audit trail does not name"))))
+
+(defn- outcome-cell [{:keys [outcome approver violations phase-reason] :as v}]
   (case outcome
     :auto-commit     (span "ok" "auto-committed (governor clean)")
     :approved-commit (str (span "ok" "committed") " after approval by " (code approver))
-    :human-rejected  (str (span "warn" "held") " &mdash; approver " (code rejected-by) " rejected")
+    :human-rejected  (str (span "warn" "held") " &mdash; " (rejecter-cell v))
     :hard-hold       (span "critical" (str "HARD hold &middot; " (esc (joined (map :rule violations)))))
     :phase-hold      (span "warn" (str "phase gate &middot; " (esc (lbl phase-reason))))
     (span "muted" "held")))
