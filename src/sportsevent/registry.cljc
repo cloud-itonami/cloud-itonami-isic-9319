@@ -47,7 +47,7 @@
   official ruling itself (that is `sportsevent.operation`'s
   `:actuation/finalize-ruling`, always human-gated -- see README
   `Actuation`)."
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (defn- unsigned-certificate
   "Every certificate this actor produces is UNSIGNED -- signature is the
@@ -91,7 +91,7 @@
     (throw (ex-info "ruling-finalization: jurisdiction required" {})))
   (when (< sequence 0)
     (throw (ex-info "ruling-finalization: sequence must be >= 0" {})))
-  (let [ruling-number (str (str/upper-case jurisdiction) "-RUL-" (zero-pad sequence 6))
+  (let [ruling-number (str (str/upper jurisdiction) "-RUL-" (zero-pad sequence 6))
         record {"record_id" ruling-number
                 "kind" "ruling-finalization-draft"
                 "participant_id" participant-id
