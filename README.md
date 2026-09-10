@@ -124,7 +124,7 @@ any phase, by construction.** Two independent layers enforce this
 (`sportsevent.governor`'s `:actuation/finalize-ruling` high-stakes
 gate and `sportsevent.phase`'s phase table, which never puts
 `:actuation/finalize-ruling` in any phase's `:auto` set) -- see
-`sportsevent.phase`'s docstring and `test/sportsevent/phase_test.clj`'s
+`sportsevent.phase`'s docstring and `test/sportsevent/phase_test.kotoba`'s
 `finalize-ruling-never-auto-at-any-phase`. The actor may draft, check
 and recommend; a human licensed official is always the one who
 actually finalizes a ruling. Matching `leasing`'s/`underwriting`'s/
@@ -217,14 +217,14 @@ reference at all.
 
 | File | Role |
 |---|---|
-| `src/sportsevent/store.cljc` | **Store** protocol -- `MemStore` ‖ `DatomicStore` (`langchain.db`) + append-only audit ledger + ruling-finalization history. No dynamically-filed sub-record -- the actuation op acts directly on a pre-seeded participant, and the double-actuation guard checks a dedicated `:ruling-finalized?` boolean rather than a `:status` value |
-| `src/sportsevent/registry.cljc` | Ruling-finalization draft records, plus `timing-calibration-overdue?` -- an HONEST reuse of this fleet's MAXIMUM-ceiling check family (the TWELFTH instance, the second instance of `navigator`/8691's specific elapsed-time-exceeds-validity-window sub-pattern), not claimed as new |
-| `src/sportsevent/facts.cljc` | Per-jurisdiction sports-officiating/anti-doping catalog with an official spec-basis citation per entry, honest coverage reporting |
-| `src/sportsevent/sportseventadvisor.cljc` | **SportsEventOps-LLM** -- `mock-advisor` ‖ `llm-advisor`; intake/ruling-verification/anti-doping-control-screening/ruling-finalization proposals |
-| `src/sportsevent/governor.cljc` | **Event Integrity Governor** -- 5 HARD checks (spec-basis · evidence-incomplete · anti-doping-control-unresolved, unconditional evaluation, GENUINELY NEW, the 56th grounding of this discipline · timing-calibration-overdue, MAXIMUM-ceiling reuse, the 12th instance, not claimed as new · already-finalized guard) + 1 soft (confidence/actuation gate) |
-| `src/sportsevent/phase.cljc` | **Phase 0→3** -- read-only → assisted intake → assisted verify → supervised (ruling finalization always human; participant intake is the ONLY auto-eligible op, no direct capital risk) |
-| `src/sportsevent/operation.cljc` | **OperationActor** -- langgraph-clj StateGraph |
-| `src/sportsevent/sim.cljc` | demo driver |
+| `src/sportsevent/store.kotoba` | **Store** protocol -- `MemStore` ‖ `DatomicStore` (`langchain.db`) + append-only audit ledger + ruling-finalization history. No dynamically-filed sub-record -- the actuation op acts directly on a pre-seeded participant, and the double-actuation guard checks a dedicated `:ruling-finalized?` boolean rather than a `:status` value |
+| `src/sportsevent/registry.kotoba` | Ruling-finalization draft records, plus `timing-calibration-overdue?` -- an HONEST reuse of this fleet's MAXIMUM-ceiling check family (the TWELFTH instance, the second instance of `navigator`/8691's specific elapsed-time-exceeds-validity-window sub-pattern), not claimed as new |
+| `src/sportsevent/facts.kotoba` | Per-jurisdiction sports-officiating/anti-doping catalog with an official spec-basis citation per entry, honest coverage reporting |
+| `src/sportsevent/sportseventadvisor.kotoba` | **SportsEventOps-LLM** -- `mock-advisor` ‖ `llm-advisor`; intake/ruling-verification/anti-doping-control-screening/ruling-finalization proposals |
+| `src/sportsevent/governor.kotoba` | **Event Integrity Governor** -- 5 HARD checks (spec-basis · evidence-incomplete · anti-doping-control-unresolved, unconditional evaluation, GENUINELY NEW, the 56th grounding of this discipline · timing-calibration-overdue, MAXIMUM-ceiling reuse, the 12th instance, not claimed as new · already-finalized guard) + 1 soft (confidence/actuation gate) |
+| `src/sportsevent/phase.kotoba` | **Phase 0→3** -- read-only → assisted intake → assisted verify → supervised (ruling finalization always human; participant intake is the ONLY auto-eligible op, no direct capital risk) |
+| `src/sportsevent/operation.kotoba` | **OperationActor** -- langgraph-clj StateGraph |
+| `src/sportsevent/sim.kotoba` | demo driver |
 | `test/sportsevent/*_test.clj` | governor contract · phase invariants · store parity · registry conformance · facts coverage |
 
 ## Business-process coverage (honest)
