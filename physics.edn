@@ -1,0 +1,35 @@
+;; What this vertical's robot physically does, declared for
+;; kotoba.robotics.process (kotoba-lang/robotics). `kbb -M:dev:physics` runs it.
+;;
+;; README "Robotics premise": a timing/scoring capture robot assists physical
+;; event-data collection at sports events (ISIC 9319), gated by the Event
+;; Integrity Governor. Its physical work is moving the photo-finish camera
+;; mast to the finish line between heats, and keeping its timing electronics
+;; within temperature while it stands in the sun on the infield.
+;;
+;; Every number without a cited source is marked `estimate` in its :basis.
+;; Replacing an estimate with a sourced value is this bot's growth work.
+{:physics/schema "itonami.physical-ai.spec.v1"
+ :repo "cloud-itonami/cloud-itonami-isic-9319"
+ :cases
+ [{:id :photo-finish-mast-reposition
+   :kind :transport
+   :procedure "robot drives the photo-finish camera mast across the infield to the finish line between heats and stops on its mark"
+   :params {:mass-kg 70.0 :payload-kg 12.0 :distance-m 60.0 :v-max-mps 1.5 :a-max-mps2 0.6
+            :drive-force-n 300.0 :crr 0.05
+            :cog-height-m 0.40 :support-half-length-m 0.30 :payload-cog-height-m 1.80
+            :max-time-s 1200.0}
+   :sweep {:param :brake-decel-mps2 :values [0.5 1.0 2.0 3.0 4.0]}
+   :quantity :min-tipover-margin
+   :limit {:min 0.3 :basis "estimate: keep 30 % of the static stability margin while stopping on the mark, for mast sway and infield bumps"}
+   :boundary {:lo 0.2 :hi 6.0}}
+  {:id :timing-box-in-sun
+   :kind :thermal
+   :procedure "timing electronics box stands on the infield; the sun heats its ABS lid from outside and the inner lid surface warms the electronics"
+   :params {:thickness-m 0.003 :conductivity-w-mk 0.17 :density-kg-m3 1050.0 :specific-heat-j-kgk 1400.0
+            :t0-c 30.0 :h-front-w-m2k 25.0 :t-back-ambient-c 35.0 :h-back-w-m2k 5.0
+            :threshold-c 60.0 :duration-s 3600.0 :nodes 11}
+   :sweep {:param :t-hot-c :values [45.0 55.0 65.0 75.0 85.0]}
+   :quantity :peak-back-c
+   :limit {:max 60.0 :basis "estimate: inner-lid temperature ceiling for the timing electronics and battery; t-hot-c is a sol-air temperature (air temperature plus absorbed sun), and the ABS properties are typical handbook values"}
+   :boundary {:lo 35.0 :hi 120.0}}]}
